@@ -1,0 +1,10 @@
+kdyz budu napajet z turisu, jednoduchym zpusobem:
+4 min deep sleep = 4*60*0.2/3600mAh = 0.013mAh
+1 min read = 1*60*40/3600mAh = 0.67mAh
+10s wifi = 10*200/3600mAh = 0.55mAh
+suma = 1.233mAh
+
+jeden den ma techto cyklu 24*60/5 = 288, tzn za den sezereme 350mAh
+jeden rok = 130Ah
+
+cena 130Ah * 5V = 650Wh = 3Kc
