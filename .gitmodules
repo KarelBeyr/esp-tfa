@@ -1,0 +1,3 @@
+[submodule "libraries"]
+	path = libraries
+	url = D:\\Dropbox\\projects\\esp32\\libraries
