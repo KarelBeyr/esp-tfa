@@ -2,7 +2,8 @@
 #include "WiFi.h"
 #include "thingspeak.h"
 #include "watchdog.h"
-#include "passwords.h"
+
+#include "pass.h"
 
 bool shouldLogToSerial = false;
 
@@ -225,7 +226,7 @@ void loop() {
 
   unsigned long sleepDuration = computeSleepDuration();
 
-  WiFi.begin(Passwords().WifiSSID(), Passwords().WifiPassword());
+  WiFi.begin(WifiSsid, WifiPassword);
 
   while (WiFi.status() != WL_CONNECTED) {   //TODO zblbuvzdornit pripojovani na wifi. Kdyz se nepodari po x vterinach, zrestartovat
     delay(500);
@@ -241,7 +242,8 @@ void loop() {
     Serial.println("IP address: ");
     Serial.println(WiFi.localIP());
   }
-  maybeLogTelemetryToThingspeak(Passwords().WriteAPIKeyTFA, 0, 
+  Serial.println(WriteAPIKeyTFA);
+  maybeLogTelemetryToThingspeak(WriteAPIKeyTFA, 0, 
       sensorsToSend[0].isValid ? String((float)sensorsToSend[0].temp / 10.0) : "", 
       sensorsToSend[0].isValid ? String(sensorsToSend[0].hum) : "", 
       sensorsToSend[1].isValid ? String((float)sensorsToSend[1].temp / 10.0) : "", 
