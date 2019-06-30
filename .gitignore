@@ -7,3 +7,4 @@
 .vscode
 thingspeak.txt
 .travis.yml
+src/pass.h
