@@ -2,10 +2,9 @@
 #include "WiFi.h"
 #include "thingspeak.h"
 #include "watchdog.h"
+#include "debugUtils.h"
 
 #include "pass.h"
-
-bool shouldLogToSerial = false;
 
 const byte interruptPin = 25;
 
@@ -120,21 +119,19 @@ void IRAM_ATTR handleInterrupt() {
     {
       if (lastThreeReadPacketsSame())
       {
-        if (shouldLogToSerial) {
-          Serial.print(ch + 1);
-          Serial.print(") Temperature: ");
-          Serial.printf("%4.1f", currentPacket.temp / 10.0);
-          Serial.print("°C Humidity: ");
-          Serial.print(currentPacket.hum);
-          Serial.print("% head1: ");
-          Serial.print(currentPacket.head1);
-          Serial.print(" head2: ");
-          Serial.print(currentPacket.head2);
-          Serial.print(" tail: ");
-          Serial.print(currentPacket.tail);
-          Serial.print(" micros: ");
-          Serial.println(lastMicros);
-        }
+        DEBUG_PRINT(ch + 1);
+        DEBUG_PRINT(") Temperature: ");
+        DEBUG_PRINTF("%4.1f", currentPacket.temp / 10.0);
+        DEBUG_PRINT("°C Humidity: ");
+        DEBUG_PRINT(currentPacket.hum);
+        DEBUG_PRINT("% head1: ");
+        DEBUG_PRINT(currentPacket.head1);
+        DEBUG_PRINT(" head2: ");
+        DEBUG_PRINT(currentPacket.head2);
+        DEBUG_PRINT(" tail: ");
+        DEBUG_PRINT(currentPacket.tail);
+        DEBUG_PRINT(" micros: ");
+        DEBUG_PRINTLN(lastMicros);
 
         sensorsToSend[ch].hum = currentPacket.hum;
         sensorsToSend[ch].temp = currentPacket.temp;
@@ -155,11 +152,10 @@ void IRAM_ATTR handleInterrupt() {
 }
 
 void setup() {
-  setupWatchdog();
-  if (shouldLogToSerial) {
-    Serial.begin(115200);
-    Serial.println("Monitoring interrupts: ");
-  }
+  setupWatchdog(60);
+  DEBUG_SERIAL_START(115200);
+  DEBUG_PRINTLN("Monitoring interrupts: ");
+
   bootCount = bootCount+1;
   pinMode(interruptPin, INPUT_PULLUP);
   attachInterrupt(digitalPinToInterrupt(interruptPin), handleInterrupt, CHANGE);
@@ -220,9 +216,9 @@ unsigned long computeSleepDuration() {
 void loop() {
   while(needMoreTime() && hasTimeLeft() ) { delay(100); feedWatchdog(); }  //cekam max 3 minuty
   detachInterrupt(digitalPinToInterrupt(interruptPin));
-  if (shouldLogToSerial) Serial.print("Got all data, starting wifi at ");
+  DEBUG_PRINT("Got all data, starting wifi at ");
   unsigned long gotAllDataAt = millis();
-  if (shouldLogToSerial) Serial.println(gotAllDataAt);
+  DEBUG_PRINTLN(gotAllDataAt);
 
   unsigned long sleepDuration = computeSleepDuration();
 
@@ -230,19 +226,18 @@ void loop() {
 
   while (WiFi.status() != WL_CONNECTED) {   //TODO zblbuvzdornit pripojovani na wifi. Kdyz se nepodari po x vterinach, zrestartovat
     delay(500);
-    if (shouldLogToSerial) Serial.print(".");
+    DEBUG_PRINT(".");
   }
+  feedWatchdog();
   unsigned long wifiStartedAt = millis();
   unsigned long delta = wifiStartedAt - gotAllDataAt;
-  if (shouldLogToSerial) {
-    Serial.println("");
-    Serial.print("WiFi connected after ");
-    Serial.print(delta);
-    Serial.println("ms");
-    Serial.println("IP address: ");
-    Serial.println(WiFi.localIP());
-  }
-  Serial.println(WriteAPIKeyTFA);
+  DEBUG_PRINTLN("");
+  DEBUG_PRINT("WiFi connected after ");
+  DEBUG_PRINT(delta);
+  DEBUG_PRINTLN("ms");
+  DEBUG_PRINTLN("IP address: ");
+  DEBUG_PRINTLN(WiFi.localIP());
+
   maybeLogTelemetryToThingspeak(WriteAPIKeyTFA, 0, 
       sensorsToSend[0].isValid ? String((float)sensorsToSend[0].temp / 10.0) : "", 
       sensorsToSend[0].isValid ? String(sensorsToSend[0].hum) : "", 
@@ -254,12 +249,10 @@ void loop() {
       String(bootCount)
   );
 
-  if (shouldLogToSerial) {
-    Serial.print("Sending to thingspeak took ");
-    Serial.println(millis() - wifiStartedAt);
-    Serial.println("Going to sleep");
-  }
-  
+  DEBUG_PRINT("Sending to thingspeak took ");
+  DEBUG_PRINTLN(millis() - wifiStartedAt);
+  DEBUG_PRINTLN("Going to sleep");
+
   unsigned long sleepTime = 10 * 60 * 1000 * 1000 - micros(); //jak dlouho chci spat: 10 minut - doba jak dlouho jsem cetl senzory, minimalne 1s
   if (sleepTime < 1000000)
     sleepTime = 1000000;
