@@ -1,0 +1,3 @@
+[submodule "kb-esp-tools"]
+	path = kb-esp-tools
+	url = https://github.com/KarelBeyr/kb-esp-tools
