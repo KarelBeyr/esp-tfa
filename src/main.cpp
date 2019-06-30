@@ -256,6 +256,8 @@ void loop() {
   unsigned long sleepTime = 10 * 60 * 1000 * 1000 - micros(); //jak dlouho chci spat: 10 minut - doba jak dlouho jsem cetl senzory, minimalne 1s
   if (sleepTime < 1000000)
     sleepTime = 1000000;
+  if (sleepTime > 600000000)
+    sleepTime = 600000000;
   esp_sleep_enable_timer_wakeup(sleepTime);
   esp_deep_sleep_start();
 }
